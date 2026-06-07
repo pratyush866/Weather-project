@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="A modern weather dashboard powered by OpenWeatherMap API" />
+  <meta name="author" content="Weather Dashboard" />
+  <title>WeatherScope — Live Weather Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="project3.css" />
+</head>
+<body>
+  <div class="bg-layer" id="bgLayer" aria-hidden="true">
+    <div class="bg-orb orb-1"></div>
+    <div class="bg-orb orb-2"></div>
+    <div class="bg-orb orb-3"></div>
+    <div class="noise-overlay"></div>
+  </div>
+  <header class="site-header" role="banner">
+    <div class="header-inner">
+      <div class="logo" aria-label="WeatherScope">
+        <svg width="28" height="28" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+          <circle cx="14" cy="14" r="13" stroke="currentColor" stroke-width="1.5"/>
+          <path d="M7 14c0-3.866 3.134-7 7-7s7 3.134 7 7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M4 18h20M8 22h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span>WeatherScope</span>
+      </div>
+      <div class="live-clock" role="timer" aria-live="polite">
+        <span id="clockTime" class="clock-time">--:--:--</span>
+        <span id="clockDate" class="clock-date">--- --, ----</span>
+      </div>
+      <button
+        class="theme-toggle"
+        id="themeToggle"
+        aria-label="Toggle light/dark mode"
+        title="Toggle theme"
+        <span class="toggle-track">
+          <span class="toggle-thumb"></span>
+          <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="12" cy="12" r="5" stroke="currentColor" stroke-width="2"/>
+            <path d="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </span>
+      </button>
+    </div>
+  </header>
+  <main class="main-content" role="main">
+    <section class="search-section" aria-label="Search for a city">
+      <h1 class="hero-title">
+        Live Weather<br/>
+        <span class="accent-text">Intelligence</span>
+      </h1>
+      <p class="hero-subtitle">Real-time data from OpenWeatherMap</p>
+
+      <div class="search-bar" role="search">
+        <label for="cityInput" class="sr-only">Enter city name</label>
+        <div class="search-input-wrap">
+          <svg class="search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+            <path d="m21 21-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+          <input
+            type="text"
+            id="cityInput"
+            class="city-input"
+            placeholder="Search city — e.g. Mumbai, London…"
+            autocomplete="off"
+            spellcheck="false"
+            aria-required="true"
+          />
+          <button class="clear-btn" id="clearBtn" aria-label="Clear search" hidden>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M18 6 6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+        <button class="search-btn" id="searchBtn" aria-label="Search weather">
+          <span class="btn-text">Search</span>
+          <svg class="btn-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M5 12h14M12 5l7 7-7 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+      <div class="error-banner" id="errorBanner" role="alert" aria-live="assertive" hidden>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 8v4M12 16h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <span id="errorText">Something went wrong.</span>
+      </div>
+      <div class="recent-wrap" id="recentWrap" aria-label="Recent searches" hidden>
+        <span class="recent-label">Recent:</span>
+        <ul class="recent-list" id="recentList" role="list"></ul>
+        <button class="clear-recent-btn" id="clearRecentBtn" aria-label="Clear recent searches">Clear all</button>
+      </div>
+    </section>
+    <div class="loader-wrap" id="loaderWrap" aria-live="polite" aria-label="Loading weather data" hidden>
+      <div class="spinner" aria-hidden="true">
+        <div class="spin-ring"></div>
+        <div class="spin-ring ring-2"></div>
+      </div>
+      <p class="loader-text">Fetching weather data…</p>
+    </div>
+    <section class="weather-dashboard" id="weatherDashboard" aria-label="Weather results" hidden>
+      <div class="refresh-badge" id="refreshBadge" aria-live="polite" title="Auto-refreshes every 5 minutes">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          <path d="M3 3v5h5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <span id="refreshCountdown">5:00</span>
+      </div>
+      <article class="card hero-card" aria-label="Current weather overview">
+        <div class="hero-left">
+          <div class="city-line">
+            <h2 class="city-name" id="cityName">—</h2>
+            <span class="country-badge" id="countryBadge">—</span>
+          </div>
+          <p class="weather-desc" id="weatherDesc">—</p>
+          <div class="temp-wrap">
+            <span class="temp-main" id="tempMain">—</span>
+            <span class="temp-unit">°C</span>
+          </div>
+          <p class="feels-like">Feels like <strong id="feelsLike">—</strong>°C</p>
+          <p class="last-updated" id="lastUpdated">Last updated: —</p>
+        </div>
+        <div class="hero-right">
+          <img
+            src=""
+            alt="Weather condition icon"
+            class="weather-icon"
+            id="weatherIcon"
+            width="100"
+            height="100"
+          />
+        </div>
+      </article>
+      <div class="stats-grid" role="list" aria-label="Weather statistics">
+        <article class="card stat-card" role="listitem" aria-label="Humidity">
+          <div class="stat-icon-wrap hue-blue">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 2C6 9 4 13.5 4 16a8 8 0 0 0 16 0c0-2.5-2-7-8-14z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Humidity</span>
+            <span class="stat-value" id="humidity">—</span>
+            <div class="stat-bar-wrap" aria-hidden="true">
+              <div class="stat-bar" id="humidityBar" style="width:0%"></div>
+            </div>
+          </div>
+        </article>
+        <article class="card stat-card" role="listitem" aria-label="Wind speed">
+          <div class="stat-icon-wrap hue-teal">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Wind Speed</span>
+            <span class="stat-value" id="windSpeed">—</span>
+          </div>
+        </article>
+
+        <article class="card stat-card" role="listitem" aria-label="Atmospheric pressure">
+          <div class="stat-icon-wrap hue-purple">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Pressure</span>
+            <span class="stat-value" id="pressure">—</span>
+          </div>
+        </article>
+
+        <article class="card stat-card" role="listitem" aria-label="Visibility">
+          <div class="stat-icon-wrap hue-amber">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" stroke="currentColor" stroke-width="1.8"/>
+              <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Visibility</span>
+            <span class="stat-value" id="visibility">—</span>
+          </div>
+        </article>
+
+
+        <article class="card stat-card" role="listitem" aria-label="Minimum temperature">
+          <div class="stat-icon-wrap hue-cyan">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 9V4M8 8l-1-1M16 8l1-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M8 16a4 4 0 1 0 8 0 4 4 0 0 0-8 0z" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 9v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Min Temp</span>
+            <span class="stat-value" id="tempMin">—</span>
+          </div>
+        </article>
+
+        <article class="card stat-card" role="listitem" aria-label="Maximum temperature">
+          <div class="stat-icon-wrap hue-red">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M12 9V4M8 8l-1-1M16 8l1-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+              <path d="M8 16a4 4 0 1 0 8 0 4 4 0 0 0-8 0z" stroke="currentColor" stroke-width="1.8"/>
+              <path d="M12 9v7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="stat-info">
+            <span class="stat-label">Max Temp</span>
+            <span class="stat-value" id="tempMax">—</span>
+          </div>
+        </article>
+        </div>
+     </section>
+</main>
+  <footer class="site-footer" role="contentinfo">
+    <p>Powered by <a href="https://openweathermap.org" target="_blank" rel="noopener noreferrer">OpenWeatherMap</a> · Built with ❤️ for internship submission</p>
+  </footer>
+  <script src="project3.js"></script>
+</body>
+</html>
